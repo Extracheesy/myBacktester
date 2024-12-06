@@ -8,7 +8,11 @@ if __name__ == '__main__':
     lst_top_1_combined = []
     for result in lst_result:
         # dir_output = 'output_1/'
-        dir_output = 'output_' + result + '/'
+        if COLAB:
+            dir_colab = '/content/drive/My Drive/Colab Notebooks/param_optimization/'
+            dir_output = dir_colab + 'output_' + result + '/'
+        else:
+            dir_output = 'output_' + result + '/'
         os.makedirs(dir_output, exist_ok=True)
 
         # Step 1: Read the CSV files and merge

@@ -346,7 +346,11 @@ async def main():
 
     # Initialize DataLoader
     exchange_name = input_data.exchange_name
-    path_download = "./database/exchanges"
+    if input_data.COLAB:
+        dir_colab = '/content/drive/My Drive/Colab Notebooks/param_optimization/'
+        path_download = dir_colab + "/database/exchanges"
+    else:
+        path_download = "./database/exchanges"
     data_loader = DataLoader(exchange_name=exchange_name, path_download=path_download)
 
     # Define parameters
@@ -403,7 +407,12 @@ async def main():
         ]
         df_results = df_results[desired_columns]
         modified_symbol = symbol.replace("/", "")
-        save_dataframe_with_unique_filename(df_results, base_filename=modified_symbol + "_results_test_multi", directory="split_results")
+        if input_data.COLAB:
+            dir_colab = '/content/drive/My Drive/Colab Notebooks/param_optimization/'
+            path_dir_split_result = dir_colab + "split_results"
+        else:
+            path_dir_split_result = dir_colab + "split_results"
+        save_dataframe_with_unique_filename(df_results, base_filename=modified_symbol + "_results_test_multi", directory=path_dir_split_result)
 
     # End the timer
     end_time = time.time()
