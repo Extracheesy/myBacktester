@@ -47,7 +47,12 @@ lst_coin = [
     # "SEI/USDT",
 ]
 
-exchange_name = "binance"
+COLAB = True
+if COLAB:
+    exchange_name = "binanceusdm"
+else:
+    exchange_name = "binance"
+
 leverage = 1
 start_date = "2020-01-01"
 end_date = None
