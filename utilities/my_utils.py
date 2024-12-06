@@ -63,3 +63,40 @@ def analyze_list_pairs(lst_pair):
         'common_values': sorted(common_values),
         'missing_values': missing_values
     }
+
+def extract_symbols_from_files(directory):
+    """
+    Extracts symbols from filenames in a given directory and converts them to the "BTC/USDT" format.
+
+    Args:
+        directory (str): The path to the directory containing the files.
+
+    Returns:
+        list: A list of symbols in the "BTC/USDT" format, or an empty list if the directory does not exist.
+    """
+    if not os.path.exists(directory):
+        return []  # Return an empty list if the directory does not exist
+
+    symbols = []
+    for filename in os.listdir(directory):
+        # Check if the filename matches the expected pattern
+        if filename.endswith(".csv") and "_results_test_multi_" in filename:
+            # Extract the symbol (e.g., "BTCUSDT" from "BTCUSDT_results_test_multi_0001.csv")
+            symbol = filename.split("_results_test_multi_")[0]
+            # Convert "BTCUSDT" to "BTC/USDT"
+            formatted_symbol = f"{symbol[:-4]}/{symbol[-4:]}"
+            symbols.append(formatted_symbol)
+    return symbols
+
+def remove_performed_symbols(symbols, already_performed):
+    """
+    Removes symbols that are already performed from the symbols list.
+
+    Args:
+        symbols (list): List of all symbols.
+        already_performed (list): List of symbols that are already performed.
+
+    Returns:
+        list: Updated symbols list with items from already_performed removed.
+    """
+    return [symbol for symbol in symbols if symbol not in already_performed]

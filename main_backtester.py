@@ -9,7 +9,9 @@ from utilities.plot_analysis import plot_equity_vs_asset, plot_bar_by_month
 import ta
 import pandas as pd
 import platform
-from utilities.my_utils import save_dataframe_with_unique_filename
+from utilities.my_utils import save_dataframe_with_unique_filename, extract_symbols_from_files, remove_performed_symbols
+
+from collections import defaultdict
 
 import input_data
 
@@ -371,24 +373,37 @@ async def main():
     nb_comb = len(params_combinations)
     print(f"Total combinations: {nb_comb}")
 
-    # Multithreading
-    num_cores = multiprocessing.cpu_count()
-    print('num_cores', num_cores)
-    with ThreadPoolExecutor(max_workers=num_cores) as executor:
-        futures = []
-        for i, combo in enumerate(params_combinations, start=1):
-            futures.append(executor.submit(process_combination, combo, data_loader, nb_comb, i))
+    grouped_by_symbol = defaultdict(list)
+    for item in params_combinations:
+        _, symbol, params = item
+        grouped_by_symbol[symbol].append(item)
 
-        df_results = pd.concat([future.result() for future in futures], ignore_index=True)
+    # Get a list of unique symbols
+    symbols = list(grouped_by_symbol.keys())
+    already_performed = extract_symbols_from_files("split_results")
+    symbols = remove_performed_symbols(symbols, already_performed)
 
-    # Save results
-    desired_columns = [
-        'pair', 'timeframe', 'param_set', 'wallet', 'sharpe_ratio',
-        'win_rate', 'avg_profit', 'total_trades', 'max_drawdown',
-        'trix_length', 'trix_signal_length', 'trix_signal_type', 'long_ma_length', 'size'
-    ]
-    df_results = df_results[desired_columns]
-    save_dataframe_with_unique_filename(df_results, base_filename="results_test_multi", directory="results")
+    for symbol in symbols:
+        symbol_params_combinations = grouped_by_symbol["BTC/USDT"]
+        # Multithreading
+        num_cores = multiprocessing.cpu_count()
+        print('num_cores', num_cores)
+        with ThreadPoolExecutor(max_workers=num_cores) as executor:
+            futures = []
+            for i, combo in enumerate(symbol_params_combinations, start=1):
+                futures.append(executor.submit(process_combination, combo, data_loader, nb_comb, i))
+
+            df_results = pd.concat([future.result() for future in futures], ignore_index=True)
+
+        # Save results
+        desired_columns = [
+            'pair', 'timeframe', 'param_set', 'wallet', 'sharpe_ratio',
+            'win_rate', 'avg_profit', 'total_trades', 'max_drawdown',
+            'trix_length', 'trix_signal_length', 'trix_signal_type', 'long_ma_length', 'size'
+        ]
+        df_results = df_results[desired_columns]
+        modified_symbol = symbol.replace("/", "")
+        save_dataframe_with_unique_filename(df_results, base_filename=modified_symbol + "_results_test_multi", directory="split_results")
 
     # End the timer
     end_time = time.time()
