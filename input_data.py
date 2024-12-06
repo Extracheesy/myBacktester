@@ -49,7 +49,7 @@ lst_coin = [
 
 COLAB = True
 if COLAB:
-    exchange_name = "binanceusdm"
+    exchange_name = "kucoin"
 else:
     exchange_name = "binance"
 
