@@ -388,7 +388,7 @@ async def main():
     symbols = remove_performed_symbols(symbols, already_performed)
 
     for symbol in symbols:
-        symbol_params_combinations = grouped_by_symbol["BTC/USDT"]
+        symbol_params_combinations = grouped_by_symbol[symbol]
         # Multithreading
         num_cores = multiprocessing.cpu_count()
         print('num_cores', num_cores)

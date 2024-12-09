@@ -4,6 +4,7 @@ import pandas as pd
 import ta
 import math
 import requests
+from vectorbtpro import *
 
 def get_n_columns(df, columns, n=1):
     dt = df.copy()
@@ -397,5 +398,69 @@ class MaSlope():
                 pd.Series: x_angle
         """
         return self.df['xangle']
-        
-    
+
+class TrixVBT():
+    """ Trix indicator
+
+        Args:
+            close(pd.Series): dataframe 'close' columns,
+            trix_length(int): the window length for each mooving average of the trix,
+            trix_signal_length(int): the window length for the signal line
+    """
+
+    def __init__(
+            self,
+            vbt_data,
+            trix_length: int = 9,
+            trix_signal_length: int = 21,
+            trix_signal_type: str = "sma", # or ema
+            long_ma_length: int = 100
+    ):
+        self.vbt_data = vbt_data
+        self.trix_length = trix_length
+        self.trix_signal_length = trix_signal_length
+        self.trix_signal_type = trix_signal_type
+        self.long_ma_length = long_ma_length
+        self._run()
+
+    def _run(self):
+        self.long_ma = vbt.talib("EMA").run(self.vbt_data.get("Close"), self.long_ma_length).real
+        self.long_ma = self.long_ma.droplevel(level=0, axis=1)
+
+        # Step 1: Calculate the TRIX line
+        self.trix_line = vbt.talib("TRIX").run(self.vbt_data.get("Close"), self.trix_length).real
+
+        # Step 2: Compute the percentage change of the TRIX line
+        self.trix_pct_line = self.trix_line.pct_change() * 100
+
+        # Step 3: Determine the signal line based on the specified type
+        if self.trix_signal_type == "sma":
+            self.trix_signal_line = vbt.talib("SMA").run(self.trix_pct_line, self.trix_signal_length).real
+        elif self.trix_signal_type == "ema":
+            self.trix_signal_line = vbt.talib("EMA").run(self.trix_pct_line, self.trix_signal_length).real
+        else:
+            raise ValueError("Invalid trix_signal_type. Choose 'sma' or 'ema'.")
+
+        # Align the MultiIndex levels by removing the extra level
+        self.trix_signal_line = self.trix_signal_line.droplevel(level=0, axis=1)
+        self.trix_signal_line = self.trix_signal_line.droplevel(level=0, axis=1)
+
+        self.trix_pct_line = self.trix_pct_line.droplevel(level=0, axis=1)
+
+        # Calculate the TRIX histogram
+        self.trix_histo = self.trix_pct_line - self.trix_signal_line
+
+    def get_trix_line(self):
+        return self.trix_line
+
+    def get_trix_pct_line(self):
+        return self.trix_pct_line
+
+    def get_trix_signal_line(self):
+        return self.trix_signal_line
+
+    def get_trix_histo(self):
+        return self.trix_histo
+
+    def get_long_ma(self):
+        return self.long_ma

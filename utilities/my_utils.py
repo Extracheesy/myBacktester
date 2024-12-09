@@ -100,3 +100,46 @@ def remove_performed_symbols(symbols, already_performed):
         list: Updated symbols list with items from already_performed removed.
     """
     return [symbol for symbol in symbols if symbol not in already_performed]
+
+def compare_multiindex_levels(df1, df2):
+    """
+    Compare the MultiIndex levels of two DataFrames.
+
+    Parameters:
+    df1 (pd.DataFrame): First DataFrame.
+    df2 (pd.DataFrame): Second DataFrame.
+
+    Returns:
+    bool: True if both DataFrames have identical MultiIndex levels, False otherwise.
+    """
+    # Check if both DataFrames have MultiIndex
+    if not isinstance(df1.index, pd.MultiIndex):
+        print("One or both DataFrames do not have a MultiIndex.")
+        return False
+    if not isinstance(df2.index, pd.MultiIndex):
+        print("One or both DataFrames do not have a MultiIndex.")
+        return False
+    if not isinstance(df1.index, pd.MultiIndex) or not isinstance(df2.index, pd.MultiIndex):
+        print("One or both DataFrames do not have a MultiIndex.")
+        return False
+
+    # Compare the number of levels
+    if df1.index.nlevels != df2.index.nlevels:
+        print("The number of levels in the MultiIndex differ.")
+        return False
+
+    # Compare level names
+    if df1.index.names != df2.index.names:
+        print("The names of the levels in the MultiIndex differ.")
+        return False
+
+    # Compare unique values in each level
+    for level in df1.index.names:
+        df1_level_values = df1.index.get_level_values(level).unique()
+        df2_level_values = df2.index.get_level_values(level).unique()
+        if not df1_level_values.equals(df2_level_values):
+            print(f"The unique values in the level '{level}' differ.")
+            return False
+
+    # If all checks pass
+    return True
