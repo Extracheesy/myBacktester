@@ -28,26 +28,11 @@ def RSI(data):
     entries = rsi.rsi.vbt.crossed_below(30)
     exits = rsi.rsi.vbt.crossed_above(70)
 
-    # clean_entries.vbt.signals.total()
-    # clean_exits.vbt.signals.total()
-
-    """
-    pf = vbt.Portfolio.from_signals(
-        close=close_price,
-        entries=entries,
-        exits=exits,
-        size=100,
-        size_type='value',
-        init_cash='auto'
-    )
-
-    pf.stats()
-    """
-
     return entries, exits
 
 class Strategy:
     def __init__(self, symbols, tf, vbt_data, strategy_type, params):
+        self.crossed = False
         self.symbols = symbols
         self.tf = tf
         self.vbt_data = vbt_data
@@ -67,34 +52,17 @@ class Strategy:
         )
 
     def populate_buy_sell(self):
-        self.open_long = self.trix_obj.get_trix_histo().vbt.crossed_above(0) \
-                         & self.vbt_data.get("Close").vbt.crossed_above(self.trix_obj.get_long_ma())
-        # self.open_long = self.trix_obj.get_trix_histo().vbt.crossed_above(0)
-        self.close_long = self.trix_obj.get_trix_histo().vbt.crossed_below(0)
+        if self.crossed:
+            self.open_long_crossed = self.trix_obj.get_trix_histo().vbt.crossed_above(0) \
+                                     & self.vbt_data.get("Close").vbt.crossed_above(self.trix_obj.get_long_ma())
+            self.close_long_crossed = self.trix_obj.get_trix_histo().vbt.crossed_below(0)
 
-        # self.open_long = ((self.trix_obj.get_trix_histo() > 0) & (self.vbt_data.get("Close") > self.trix_obj.get_long_ma())).astype(int)
-        # self.close_long = (self.trix_obj.get_trix_histo() < 0).astype(int)
-
-        # self.open_short = ((self.trix_obj.get_trix_histo() < 0) & (self.vbt_data.get("Close") < self.trix_obj.get_long_ma())).astype(int)
-        # self.close_short = (self.trix_obj.get_trix_histo() > 0).astype(int)
-
+        self.open_long = (self.trix_obj.get_trix_histo() > 0) & (self.vbt_data.get("Close") > self.trix_obj.get_long_ma())
+        self.close_long = (self.trix_obj.get_trix_histo() < 0)
 
     def run_backtest(self, initial_wallet=1000, leverage=1, start_date=None, end_date=None):
         lst_results = []
         close = self.vbt_data.get("Close")
-        signal_open_long = self.open_long
-        signal_close_long = self.close_long
-        # signal_open_long = self.open_long == 1
-        # signal_close_long = self.close_long == 1
-
-        # for symbol in self.symbols:
-            # close = self.vbt_data.get("Close")[symbol]
-            # signal_open_long = self.open_long[symbol] == 1
-            #signal_close_long = self.close_long[symbol] == 1
-
-        close = self.vbt_data.get("Close")
-        signal_open_long = self.open_long
-        signal_close_long = self.close_long
 
         # Set frequency dynamically based on timeframe
         frequency_mapping = {
@@ -109,8 +77,8 @@ class Strategy:
 
         pf = vbt.PF.from_signals(
             close=close,
-            entries=signal_open_long,
-            exits=signal_close_long,
+            entries=self.open_long,
+            exits=self.close_long,
             freq=freq,
             direction="longonly",
             size=1.0,
@@ -118,12 +86,25 @@ class Strategy:
             init_cash=10000,
             fees=0.001
         )
+        if self.crossed:
+            pf_crossed = vbt.PF.from_signals(
+                close=close,
+                entries=self.open_long_crossed,
+                exits=self.close_long_crossed,
+                freq=freq,
+                direction="longonly",
+                size=1.0,
+                size_type="percent",
+                init_cash=10000,
+                fees=0.001
+            )
         for symbol in self.symbols:
             lst_results.append(
                 {
                     "symbol": symbol,
+                    "type": "",
                     "timeframe": self.tf,
-                    "side": self.side[0],
+                    "side": self.side[0][0],
                     "trix_length": self.params["trix_length"],
                     "trix_signal_length": self.params["trix_signal_length"],
                     "trix_signal_type": self.params["trix_signal_type"],
@@ -131,6 +112,20 @@ class Strategy:
                     **pf[symbol].stats().to_dict()  # Unpack the stats dictionary into the main dictionary
                 }
             )
+            if self.crossed:
+                lst_results.append(
+                    {
+                        "symbol": symbol,
+                        "type": "CROSSED",
+                        "timeframe": self.tf,
+                        "side": self.side[0][0],
+                        "trix_length": self.params["trix_length"],
+                        "trix_signal_length": self.params["trix_signal_length"],
+                        "trix_signal_type": self.params["trix_signal_type"],
+                        "long_ma_length": self.params["long_ma_length"],
+                        **pf_crossed[symbol].stats().to_dict()  # Unpack the stats dictionary into the main dictionary
+                    }
+                )
 
         return lst_results
 

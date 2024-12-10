@@ -9,10 +9,12 @@ import input_data
 import time
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
+import counter
 
-def process_combination(combo, vbt_data, nb_comb, current_index):
+def process_combination(combo, vbt_data, counter):
     tf, pair, params = combo
-    print(f"Processing combination {current_index}/{nb_comb}...")
+    print(f"Processing combination {counter.get_value()}/{counter.get_initial_count()}...")
+    counter.increment()
 
     symbols = list(vbt_data.columns)
 
@@ -50,7 +52,7 @@ if __name__ == '__main__':
 
     nb_comb = len(params_combinations)
     print(f"Total combinations: {nb_comb}")
-
+    cpt = counter.Counter(nb_comb)
     grouped_by_symbol = defaultdict(list)
     for item in params_combinations:
         tf, symbol, params = item
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     already_performed = []
     tf = remove_performed_symbols(symbols, already_performed)
 
+    df_global_results = None
     for tf in intervals:
         dataLoaderVBT = DataLoaderVBT(start_date, end_date, "vbt_data")
         vbt_data = dataLoaderVBT.fetch_data(symbols, tf).loc[start_date:]
@@ -78,11 +81,26 @@ if __name__ == '__main__':
         with ThreadPoolExecutor(max_workers=num_cores) as executor:
             futures = []
             for i, combo in enumerate(symbol_params_combinations, start=1):
-                futures.append(executor.submit(process_combination, combo, vbt_data, nb_comb, i))
+                futures.append(executor.submit(process_combination, combo, vbt_data, cpt))
 
             df_results = pd.concat([future.result() for future in futures], ignore_index=True)
+        df_global_results = pd.concat([df_global_results, df_results], ignore_index=True)
 
-    save_dataframe_with_unique_filename(df_results, "vbt_test_results", "vbt_test_results")
+    desired_columns = [
+        'symbol', 'type', 'timeframe', 'trix_length', 'trix_signal_length',
+        'trix_signal_type', 'long_ma_length', 'End Value', 'Total Return [%]',
+        'Min Value', 'Max Value', 'Benchmark Return [%]', 'Max Drawdown [%]',
+        'Total Trades', 'Win Rate [%]', 'Best Trade [%]', 'Worst Trade [%]',
+        'Avg Winning Trade [%]', 'Avg Losing Trade [%]', 'Profit Factor',
+        'Expectancy', 'Sharpe Ratio', 'Calmar Ratio', 'Omega Ratio',
+        'Sortino Ratio', 'side', 'Start Index', 'End Index', 'Total Duration',
+        'Start Value', 'Total Fees Paid'
+    ]
+
+    # Reindex the DataFrame to reorder columns and drop unwanted ones
+    df_reordered = df_global_results.reindex(columns=desired_columns)
+
+    save_dataframe_with_unique_filename(df_reordered, "vbt_test_results", "vbt_test_results")
 
     # End the timer
     end_time = time.time()
