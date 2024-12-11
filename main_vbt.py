@@ -11,6 +11,8 @@ from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 import counter
 
+import pandas as pd
+
 def process_combination(combo, vbt_data, counter):
     tf, pair, params = combo
     print(f"Processing combination {counter.get_value()}/{counter.get_initial_count()}...")
