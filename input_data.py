@@ -66,8 +66,8 @@ end_date = "2024-12-08"
 strategy_type = ["long"]
 
 if True:
-    trix_lengths = [5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
-    trix_signal_lengths = [5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
+    trix_lengths = [5, 7, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
+    trix_signal_lengths = [5, 7, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
     trix_signal_types = ["ema", "sma"]
     long_ma_lengths = [100, 200, 300, 400, 500, 600, 700]
 elif False:

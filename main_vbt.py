@@ -13,9 +13,9 @@ import counter
 
 import pandas as pd
 
-def process_combination(combo, vbt_data, counter):
+def process_combination(combo, vbt_data, counter, tf):
     tf, pair, params = combo
-    print(f"Processing combination {counter.get_value()}/{counter.get_initial_count()}...")
+    print(f"Processing {tf} combination {counter.get_value()}/{counter.get_initial_count()}...")
     counter.increment()
 
     symbols = list(vbt_data.columns)
@@ -80,12 +80,19 @@ if __name__ == '__main__':
         num_cores = multiprocessing.cpu_count()
         print('num_cores', num_cores)
 
-        with ThreadPoolExecutor(max_workers=num_cores) as executor:
+        multithread = True
+        if multithread:
+            with ThreadPoolExecutor(max_workers=num_cores) as executor:
+                futures = []
+                for i, combo in enumerate(symbol_params_combinations, start=1):
+                    futures.append(executor.submit(process_combination, combo, vbt_data, cpt, tf))
+
+                df_results = pd.concat([future.result() for future in futures], ignore_index=True)
+        else: # CEDE DEBUG
             futures = []
             for i, combo in enumerate(symbol_params_combinations, start=1):
-                futures.append(executor.submit(process_combination, combo, vbt_data, cpt))
+                futures.append(process_combination(combo, vbt_data, cpt, tf))
 
-            df_results = pd.concat([future.result() for future in futures], ignore_index=True)
         df_global_results = pd.concat([df_global_results, df_results], ignore_index=True)
 
     desired_columns = [
