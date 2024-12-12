@@ -4,6 +4,10 @@ from utilities.my_utils import analyze_list_pairs
 
 if __name__ == '__main__':
     lst_result = ["results_test_multi_0004", "results_01_02"]
+    lst_result = ["results_test_multi_full_0001"]
+
+    COLAB = False
+
     lst_top_5_combined = []
     lst_top_1_combined = []
     for result in lst_result:
@@ -21,6 +25,9 @@ if __name__ == '__main__':
         file_path = './results/' + result + '.csv'
         df = pd.read_csv(file_path)
         df.reset_index(drop=True, inplace=True)
+
+        df_nan = df[df.isna().any(axis=1)]
+        df = df.dropna()
 
         if False:
             file_path = './results/results_02.csv'

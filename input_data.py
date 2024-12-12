@@ -1,3 +1,34 @@
+def create_range_list(A, B, x):
+    """
+    Create a list with values from A to B with a step size of x.
+
+    Parameters:
+    A (float): Start of the range.
+    B (float): End of the range.
+    x (float): Step size.
+
+    Returns:
+    list: A list containing the range values.
+    """
+    if A > B and x > 0:
+        raise ValueError("Step size x must be negative for a descending range.")
+    elif A < B and x < 0:
+        raise ValueError("Step size x must be positive for an ascending range.")
+
+    range_list = []
+    current_value = A
+    if A <= B:  # Ascending range
+        while current_value <= B:
+            range_list.append(current_value)
+            current_value += x
+    else:  # Descending range
+        while current_value >= B:
+            range_list.append(current_value)
+            current_value += x  # x should be negative
+
+    return range_list
+
+
 ___lst_coin = [
     "KASUSDT",
     "BTCUSDT", #
@@ -66,6 +97,11 @@ end_date = "2024-12-08"
 strategy_type = ["long"]
 
 if True:
+    trix_lengths = create_range_list(5, 60, 5)
+    trix_signal_lengths = create_range_list(5, 60, 5)
+    trix_signal_types = ["ema", "sma"]
+    long_ma_lengths = create_range_list(100, 1000, 100)
+if False:
     trix_lengths = [5, 7, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
     trix_signal_lengths = [5, 7, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
     trix_signal_types = ["ema", "sma"]
