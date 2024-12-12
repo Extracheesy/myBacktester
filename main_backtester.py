@@ -411,7 +411,7 @@ async def main():
             dir_colab = '/content/drive/My Drive/Colab Notebooks/param_optimization/'
             path_dir_split_result = dir_colab + "split_results"
         else:
-            path_dir_split_result = dir_colab + "split_results"
+            path_dir_split_result = "./split_results"
         save_dataframe_with_unique_filename(df_results, base_filename=modified_symbol + "_results_test_multi", directory=path_dir_split_result)
 
     # End the timer

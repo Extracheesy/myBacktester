@@ -22,10 +22,10 @@ def save_dataframe_with_unique_filename(df, base_filename, directory):
     file_index = 1
 
     # Construct the filename and increment if it already exists
-    while os.path.exists(os.path.join(directory, f"{base_filename}_{file_index:04d}{extension}")):
+    while os.path.exists(os.path.join(directory, f"{base_filename}_{file_index:06d}{extension}")):
         file_index += 1
 
-    unique_filename = os.path.join(directory, f"{base_filename}_{file_index:04d}{extension}")
+    unique_filename = os.path.join(directory, f"{base_filename}_{file_index:06d}{extension}")
 
     # Save the DataFrame
     df.to_csv(unique_filename, index=False)
