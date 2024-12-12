@@ -101,7 +101,7 @@ if True:
     trix_signal_lengths = create_range_list(5, 60, 5)
     trix_signal_types = ["ema", "sma"]
     long_ma_lengths = create_range_list(100, 1000, 100)
-if False:
+elif False:
     trix_lengths = [5, 7, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
     trix_signal_lengths = [5, 7, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47]
     trix_signal_types = ["ema", "sma"]
