@@ -1,10 +1,16 @@
 import os
 import pandas as pd
-from utilities.my_utils import analyze_list_pairs
+from utilities.my_utils import analyze_list_pairs, merge_csv_files, drop_duplicates_from_dataframe
 
 if __name__ == '__main__':
-    lst_result = ["results_test_multi_0004", "results_01_02"]
-    lst_result = ["results_test_multi_full_0001"]
+    df_input = merge_csv_files("split_results")
+    df_input = drop_duplicates_from_dataframe(df_input)
+    df_input.to_csv("./results/results_test_multi_full_0003.csv")
+
+
+    # lst_result = ["results_test_multi_0004", "results_01_02"]
+    # lst_result = ["results_test_multi_full_0001"]
+    lst_result = ["results_test_multi_full_0003"]
 
     COLAB = False
 
@@ -75,6 +81,7 @@ if __name__ == '__main__':
 
         # Step 5: Convert Scores to Ranks
         df["rank"] = df["rank_score"].rank(ascending=False).astype(int)
+        df["weighted_score"] = df["weighted_rank_score"]
         df["weighted_rank"] = df["weighted_rank_score"].rank(ascending=False).astype(int)
 
         # Step 6: Drop Unnecessary Columns

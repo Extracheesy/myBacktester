@@ -1,6 +1,60 @@
 import os
 import pandas as pd
 
+def drop_duplicates_from_dataframe(df):
+    """
+    Drop every duplicated row in a DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+        pd.DataFrame: DataFrame with duplicates removed.
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError("Input must be a pandas DataFrame.")
+
+    return df.drop_duplicates().reset_index(drop=True)
+
+def merge_csv_files(path):
+    """
+    Parse all .csv files from the specified directory, merge them into a single DataFrame,
+    reindex the DataFrame, and return the resulting DataFrame.
+
+    Parameters:
+        path (str): Path to the directory containing the .csv files.
+
+    Returns:
+        pd.DataFrame: Merged and reindexed DataFrame.
+    """
+    if not os.path.isdir(path):
+        raise ValueError(f"The provided path '{path}' is not a valid directory.")
+
+    # Collect all CSV files in the directory
+    csv_files = [os.path.join(path, file) for file in os.listdir(path) if file.endswith('.csv')]
+
+    if not csv_files:
+        raise ValueError(f"No .csv files found in the directory: {path}")
+
+    # Read and concatenate all CSV files into a single DataFrame
+    dataframes = []
+    for file in csv_files:
+        try:
+            df = pd.read_csv(file)
+            dataframes.append(df)
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+
+    if not dataframes:
+        raise ValueError("No valid data could be read from the CSV files.")
+
+    # Merge all DataFrames
+    merged_df = pd.concat(dataframes, ignore_index=True)
+
+    # Reindex the DataFrame
+    merged_df.reset_index(drop=True, inplace=True)
+
+    return merged_df
 
 def save_dataframe_with_unique_filename(df, base_filename, directory):
     """
